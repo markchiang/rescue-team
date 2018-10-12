@@ -1,6 +1,6 @@
 class UploadersController < ApplicationController
   before_action :set_uploader, only: [:show, :edit, :update, :destroy]
-  protect_from_forgery :except => :create
+  skip_before_action :verify_authenticity_token, :only => [:create]
   
   # GET /uploaders
   # GET /uploaders.json
@@ -25,10 +25,7 @@ class UploadersController < ApplicationController
   # POST /uploaders
   # POST /uploaders.json
   def create
-#     Rails.logger.info request.body.read
-    h = Hash.from_xml(request.body.read)
-    Rails.logger.info h
-#    render status: 200
+    Rails.logger.info request.body.read
     
 	render :xml => "<?xml version=\"1.0\" encoding=\"utf-8\" ?> <Data><Status>true</Status></Data>"
   end

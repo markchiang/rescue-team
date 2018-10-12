@@ -10,7 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_10_12_052152) do
+ActiveRecord::Schema.define(version: 2018_10_12_073252) do
+
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "plpgsql"
 
   create_table "uploaders", force: :cascade do |t|
     t.datetime "time"
