@@ -64,19 +64,6 @@ class UploadersController < ApplicationController
     render plain: { data: data }.to_json
   end
 
-  private
-  def return_errors_unless_valid_service_key
-    unless request.headers["HTTP_IFTTT_SERVICE_KEY"] == IFTTT_SERVICE_KEY
-      return render plain: { errors: [ { message: "401" } ] }.to_json, status: 401
-    end
-  end
-
-  def return_errors_unless_valid_action_fields
-    if params[:actionFields] && params[:actionFields][:invalid] == "true"
-      return render plain: { errors: [ { status: "SKIP", message: "400" } ] }.to_json, status: 400
-    end
-  end
-
 
   # PATCH/PUT /uploaders/1
   # PATCH/PUT /uploaders/1.json
@@ -110,6 +97,20 @@ class UploadersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def uploader_params
-      params.require(:uploader).permit(:time, :content)
+      params.require(:uploader).permit(:time, :content, :place)
     end
+	
+	def return_errors_unless_valid_service_key
+		unless request.headers["HTTP_IFTTT_SERVICE_KEY"] == IFTTT_SERVICE_KEY
+		return render plain: { errors: [ { message: "401" } ] }.to_json, status: 401
+		end
+	end
+
+	def return_errors_unless_valid_action_fields
+		if params[:actionFields] && params[:actionFields][:invalid] == "true"
+		return render plain: { errors: [ { status: "SKIP", message: "400" } ] }.to_json, status: 400
+		end
+	end
+
+
 end
