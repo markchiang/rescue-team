@@ -122,6 +122,8 @@ class UploadersController < ApplicationController
   end
 
   def earthquake_coming
+	trigger_id = params['trigger_identity']
+	Rails.logger.info "trigger_identity: " + trigger_id
 	city = params['triggerFields']['place']
     #data = Uploader.all.sort_by(&:created_at).reverse.map(&:to_json).first(params[:limit] || 50)
 	data = Uploader.where(:place => city).sort_by(&:created_at).reverse.map(&:to_json).first(params[:limit] || 50)
