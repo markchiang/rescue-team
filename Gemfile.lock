@@ -85,6 +85,7 @@ GEM
     jbuilder (2.7.0)
       activesupport (>= 4.2.0)
       multi_json (>= 1.2)
+    json (2.0.4)
     loofah (2.2.2)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -136,6 +137,9 @@ GEM
     rb-fsevent (0.10.3)
     rb-inotify (0.9.10)
       ffi (>= 0.5.0, < 2)
+    rcap (2.7.0)
+      json
+      uuidtools
     rubyzip (1.2.2)
     sass (3.6.0)
       sass-listen (~> 4.0.0)
@@ -170,6 +174,7 @@ GEM
       tzinfo (>= 1.0.0)
     uglifier (4.1.19)
       execjs (>= 0.3.0, < 3)
+    uuidtools (2.1.5)
     web-console (3.7.0)
       actionview (>= 5.0)
       activemodel (>= 5.0)
@@ -195,6 +200,7 @@ DEPENDENCIES
   pg (>= 0.18, < 2.0)
   puma (~> 3.11)
   rails (~> 5.2.1)
+  rcap
   sass-rails (~> 5.0)
   selenium-webdriver
   turbolinks (~> 5)
@@ -206,4 +212,4 @@ RUBY VERSION
    ruby 2.4.4p296
 
 BUNDLED WITH
-   1.16.5
+   1.16.6

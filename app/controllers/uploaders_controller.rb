@@ -1,9 +1,12 @@
+require 'rcap'
+
 class UploadersController < ApplicationController
   before_action :set_uploader, only: [:show, :edit, :update, :destroy]
   skip_before_action :verify_authenticity_token, :only => [:create, :status, :setup, :earthquake_coming, :index]
   before_action :return_errors_unless_valid_service_key, :only => [:status, :setup, :earthquake_coming]
   before_action :return_errors_unless_valid_action_fields, only: :create_new_thing
 
+  IFTTT_REALTIME_NOTIFICATION_URL = "https://realtime.ifttt.com/v1/notifications"
   IFTTT_SERVICE_KEY = "yB4p8CgYVQShe0YP95ACy7GyOTWGCkrG9ysif9Q9J3S2URybiCNokUk7NvWMvB9H"
   
   # GET /uploaders
@@ -30,14 +33,73 @@ class UploadersController < ApplicationController
   # POST /uploaders.json
   def create
 	# 把訊息寫進 log 內, 可用heroku logs -a rescue-team 看.
-    Rails.logger.info request.body.read
-	@uploader = Uploader.new(uploader_params)
-	@uploader.save
+    #Rails.logger.info request.body.read
+	
+	# parse 警訊, 翻譯成 object 存起來.
+	#@doc = Nokogiri::XML(request.body.read)
+	alert = RCAP::Alert.from_xml(request.body.read)
+	Rails.logger.info alert.sent
+	#Rails.logger.info alert.to_h['identifier']
+	#Rails.logger.info alert.infos
+
+	# 把訊息寫進 database 內, 等 ifttt 來收新資料.
+	alert.infos.first.parameters.each do |para|
+		if para.to_s =~ /\"/
+			ary = para.to_s.split(";")
+			#ary[0] #級數
+			#ary[1] #城市
+			Rails.logger.info ary[1].gsub("\"", "") + " " + ary[0].split(" ")[1]
+			@uploader = Uploader.new :place => ary[1].gsub("\"", ""), :content => ary[0].split(" ")[1], :time => alert.sent
+			@uploader.save
+		end
+	end
+	#hash["alert"]["info"]["description"]
+		
+
+	# 處理 ruby on rails 網頁介面的資料
+	#@uploader = Uploader.new(uploader_params)
+	#@uploader.save
 	
 	# 通知 ifttt 來收新資料
+	Rails.logger.info "Ping IFTTT..."
+	Thread.new {ping_ifttt}
 	
 	# 傳回 response, 讓 push 端知道我們成功收到訊息了.
 	render :xml => "<?xml version=\"1.0\" encoding=\"utf-8\" ?> <Data><Status>true</Status></Data>"
+  end
+  
+  def ping_ifttt
+	require 'net/http'
+	require 'uri'
+	require 'json'
+	
+	uri = URI.parse(IFTTT_REALTIME_NOTIFICATION_URL)
+	
+	header = {
+		'IFTTT-Service-Key'=>IFTTT_SERVICE_KEY,
+		'Accept'=>'application/json',
+		'Accept-Charset'=>'utf-8',
+		'Accept-Encoding'=>'gzip, deflate',
+		'Content-Type'=>'application/json'
+	}
+	body = { 
+		data: [
+			{
+				"trigger_identity": "279083d7038bb08abdd6ba1710b3794e9f70d3d7"
+			}
+		]
+	}
+	Rails.logger.info header
+	Rails.logger.info body.to_json
+	# Create the HTTP objects
+	http = Net::HTTP.new(uri.host, uri.port)
+	http.use_ssl = true
+	request = Net::HTTP::Post.new(uri.request_uri, header)
+	request.body = body.to_json
+
+	# Send the request
+	response = http.request(request)
+	Rails.logger.info response.read_body
   end
   
   # POST /ifttt/v1/status, return OK so ifttt will hit /ifttt/v1/test/setup (uploaders#setup)
@@ -51,7 +113,7 @@ class UploadersController < ApplicationController
       samples: {
 		"triggers": {
 			"earthquake_coming": {
-				"category": "台北市"
+				"place": "臺北市"
 			}
 		}
       }
@@ -60,7 +122,9 @@ class UploadersController < ApplicationController
   end
 
   def earthquake_coming
-    data = Uploader.all.sort_by(&:created_at).reverse.map(&:to_json).first(params[:limit] || 50)
+	city = params['triggerFields']['place']
+    #data = Uploader.all.sort_by(&:created_at).reverse.map(&:to_json).first(params[:limit] || 50)
+	data = Uploader.where(:place => city).sort_by(&:created_at).reverse.map(&:to_json).first(params[:limit] || 50)
     render plain: { data: data }.to_json
   end
 
