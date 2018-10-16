@@ -85,7 +85,7 @@ class UploadersController < ApplicationController
 	body = { 
 		data: [
 			{
-				"trigger_identity": "279083d7038bb08abdd6ba1710b3794e9f70d3d7"
+				"trigger_identity": "e3145801f68e4e08072ebb10a5bcdecc00bd8233"
 			}
 		]
 	}
