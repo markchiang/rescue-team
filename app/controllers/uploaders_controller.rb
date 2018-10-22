@@ -33,7 +33,7 @@ class UploadersController < ApplicationController
   # POST /uploaders.json
   def create
 	# 把訊息寫進 log 內, 可用heroku logs -a rescue-team 看.
-    #Rails.logger.info request.body.read
+    Rails.logger.info request.body.read
 	
 	# parse 警訊, 翻譯成 object 存起來.
 	#@doc = Nokogiri::XML(request.body.read)
